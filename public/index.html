@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Синхрон — Минималистичный планировщик встреч</title>
+  <!-- Google Fonts: Outfit and Inter for premium look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- App Container -->
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-icon">
+          <i data-lucide="hash" class="logo-svg"></i>
+        </div>
+        <div class="logo-text">
+          <h2>Синхрон</h2>
+          <span>календарь компании</span>
+        </div>
+      </div>
+
+      <!-- Active User Widget -->
+      <div class="user-widget">
+        <div class="widget-title">Вы вошли как</div>
+        <div class="user-card" id="active-user-card">
+          <div class="user-avatar" id="active-user-avatar">?</div>
+          <div class="user-info">
+            <h4 id="active-user-name">Не выбран</h4>
+            <p id="active-user-role">Выберите профиль</p>
+          </div>
+          <div class="user-card-actions" style="display: flex; gap: 4px;">
+            <button class="btn-edit-user" id="btn-edit-user" title="Редактировать профиль">
+              <i data-lucide="edit-3"></i>
+            </button>
+            <button class="btn-switch-user" id="btn-switch-user" title="Сменить профиль">
+              <i data-lucide="arrow-right-left"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation / Filters -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Фильтры</div>
+        
+        <button class="nav-item active" id="filter-all">
+          <i data-lucide="layout-grid"></i>
+          <span>Все встречи</span>
+        </button>
+        
+        <button class="nav-item" id="filter-my">
+          <i data-lucide="user"></i>
+          <span>Моё расписание</span>
+        </button>
+
+        <div class="employee-filter-container">
+          <label for="select-filter-employee">Календарь сотрудника</label>
+          <div class="custom-select-wrapper">
+            <select id="select-filter-employee">
+              <option value="all">Все коллеги</option>
+              <!-- Loaded dynamically -->
+            </select>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Employees Directory -->
+      <div class="employees-directory">
+        <div class="directory-header">
+          <h3>Команда</h3>
+          <button class="btn-icon-small" id="btn-add-employee" title="Добавить сотрудника">
+            <i data-lucide="plus"></i>
+          </button>
+        </div>
+        <div class="search-box">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="employee-search" placeholder="Поиск коллеги...">
+        </div>
+        <ul class="employee-list" id="sidebar-employee-list">
+          <!-- Loaded dynamically -->
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="main-header">
+        <div class="header-left">
+          <div class="view-switchers">
+            <button class="btn-toggle active" id="view-week">Неделя</button>
+            <button class="btn-toggle" id="view-day">День</button>
+          </div>
+          
+          <div class="calendar-navigation">
+            <button class="btn-nav" id="btn-prev-date" title="Предыдущий период">
+              <i data-lucide="chevron-left"></i>
+            </button>
+            <button class="btn-today" id="btn-today">Сегодня</button>
+            <button class="btn-nav" id="btn-next-date" title="Следующий период">
+              <i data-lucide="chevron-right"></i>
+            </button>
+            
+            <button class="btn-nav" id="btn-zoom-out" title="Уменьшить масштаб (Компактно)" style="margin-left: 12px;">
+              <i data-lucide="zoom-out"></i>
+            </button>
+            <button class="btn-nav" id="btn-zoom-in" title="Увеличить масштаб">
+              <i data-lucide="zoom-in"></i>
+            </button>
+            
+            <span class="current-date-display" id="date-display">Июль 2026</span>
+          </div>
+        </div>
+
+        <div class="header-right" style="position: relative;">
+          <!-- Theme Switcher -->
+          <button class="btn-theme-toggle" id="btn-theme-toggle" title="Переключить тему">
+            <i data-lucide="sun" class="sun-icon"></i>
+            <i data-lucide="moon" class="moon-icon"></i>
+          </button>
+
+          <!-- Settings Button -->
+          <button class="btn-theme-toggle" id="btn-settings-toggle" title="Настройки оформления">
+            <i data-lucide="settings"></i>
+          </button>
+
+          <!-- Notifications Bell -->
+          <button class="btn-theme-toggle" id="btn-notifications-toggle" title="Уведомления">
+            <i data-lucide="bell"></i>
+            <span class="notification-badge" id="notifications-badge"></span>
+          </button>
+
+          <!-- Notifications Popover -->
+          <div class="notifications-popover" id="notifications-popover">
+            <div class="popover-header">
+              <h4>Уведомления</h4>
+              <button id="btn-clear-notifications" class="btn-clear">Очистить</button>
+            </div>
+            <ul class="popover-list" id="notifications-list">
+              <li class="empty-notifications">Нет новых уведомлений</li>
+            </ul>
+          </div>
+
+          <button class="btn btn-primary" id="btn-new-meeting">
+            <i data-lucide="calendar-plus"></i>
+            <span>Запланировать встречу</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Upcoming Meetings Floating Bar (Ticker) -->
+      <div class="upcoming-ticker-container" id="upcoming-ticker-container">
+        <div class="ticker-title">
+          <span class="pulse-indicator"></span>
+          Ближайшие встречи:
+        </div>
+        <div class="ticker-row" id="ticker-row">
+          <!-- Upcoming meetings will float here horizontally -->
+          <div class="ticker-empty">Нет предстоящих встреч на сегодня</div>
+        </div>
+      </div>
+
+      <!-- Calendar Work Area -->
+      <div class="calendar-viewport" id="calendar-viewport">
+        <!-- Week View -->
+        <div class="calendar-grid week-view-grid" id="week-view">
+          <div class="time-column-header">Время</div>
+          <!-- Grid Headers for days (Mon - Sun) generated dynamically -->
+          <div class="grid-headers-container" id="week-grid-headers"></div>
+
+          <!-- Timeline grid content -->
+          <div class="time-grid-body">
+            <!-- Left time labels -->
+            <div class="time-labels" id="week-time-labels"></div>
+            <!-- Grid columns (one per day) with time cells inside -->
+            <div class="grid-columns-container" id="week-grid-columns"></div>
+          </div>
+        </div>
+
+        <!-- Day View -->
+        <div class="calendar-grid day-view-grid" id="day-view" style="display: none;">
+          <div class="time-column-header">Время</div>
+          <div class="grid-headers-container">
+            <div class="day-header active-day" id="day-view-header">Среда, 8 июля</div>
+          </div>
+          <div class="time-grid-body">
+            <div class="time-labels" id="day-time-labels"></div>
+            <div class="grid-columns-container" id="day-grid-columns">
+              <!-- Single column for the active day -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- User Switch Modal -->
+  <div class="modal-overlay" id="user-switch-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2>Кто вы?</h2>
+          <p class="modal-subtitle">Выберите ваш профиль для планирования встреч.</p>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="user-select-list" id="modal-user-list">
+          <!-- Loaded dynamically -->
+        </div>
+        <div class="modal-divider"><span>или</span></div>
+        <div class="create-profile-prompt">
+          <button class="btn btn-secondary btn-full" id="btn-show-create-user">
+            <i data-lucide="user-plus"></i>
+            <span>Создать новый профиль</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Employee Modal -->
+  <div class="modal-overlay" id="employee-create-modal">
+    <div class="modal-card modal-medium">
+      <div class="modal-header">
+        <h2 id="add-employee-title">Новый коллега</h2>
+        <button class="btn-close-modal" id="btn-close-create-user">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="create-user-form">
+          <div class="form-group">
+            <label for="new-emp-name">ФИО сотрудника <span class="required">*</span></label>
+            <input type="text" id="new-emp-name" placeholder="Константин Константинопольский" required autocomplete="off">
+          </div>
+          
+          <div class="form-group">
+            <label for="new-emp-position">Должность / Роль</label>
+            <input type="text" id="new-emp-position" placeholder="Product Designer" autocomplete="off">
+          </div>
+
+          <!-- Avatar Image Input Option -->
+          <div class="form-group">
+            <label>Фотография / Аватар</label>
+            <div class="avatar-upload-wrapper">
+              <div class="avatar-preview-box" id="avatar-preview-box">
+                <i data-lucide="camera"></i>
+              </div>
+              <div class="avatar-upload-controls">
+                <input type="file" id="new-emp-avatar-file" accept="image/*" style="display: none;">
+                <button type="button" class="btn btn-secondary btn-small" id="btn-trigger-upload">Загрузить фото</button>
+                <p class="field-sub">Рекомендуется квадратное изображение.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" id="btn-cancel-create-user">Отмена</button>
+            <button type="submit" class="btn btn-primary">Создать профиль</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal-overlay" id="profile-edit-modal">
+    <div class="modal-card modal-medium">
+      <div class="modal-header">
+        <h2>Редактировать профиль</h2>
+        <button class="btn-close-modal" id="btn-close-edit-profile">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-profile-form">
+          <div class="form-group">
+            <label for="edit-profile-name">Ваше ФИО <span class="required">*</span></label>
+            <input type="text" id="edit-profile-name" required autocomplete="off">
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-profile-position">Должность / Роль</label>
+            <input type="text" id="edit-profile-position" autocomplete="off">
+          </div>
+
+          <!-- Avatar Image Input Option -->
+          <div class="form-group">
+            <label>Фотография / Аватар</label>
+            <div class="avatar-upload-wrapper">
+              <div class="avatar-preview-box" id="edit-profile-avatar-preview">
+                <i data-lucide="camera"></i>
+              </div>
+              <div class="avatar-upload-controls">
+                <input type="file" id="edit-profile-avatar-file" accept="image/*" style="display: none;">
+                <button type="button" class="btn btn-secondary btn-small" id="btn-edit-profile-trigger-upload">Загрузить фото</button>
+                <button type="button" class="btn btn-ghost btn-small" id="btn-edit-profile-remove-avatar" style="margin-top: 4px; color: var(--danger);">Удалить фото</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" id="btn-cancel-edit-profile">Отмена</button>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Book Meeting Modal -->
+  <div class="modal-overlay" id="booking-modal">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div class="header-details">
+          <h2>Запланировать встречу</h2>
+          <p class="organizer-badge">Организатор: <strong id="modal-organizer-name">...</strong></p>
+        </div>
+        <button class="btn-close-modal" id="btn-close-booking">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="booking-form">
+          <div class="form-group">
+            <label for="meet-title">Тема встречи</label>
+            <input type="text" id="meet-title" placeholder="Обсуждение проекта..." required autocomplete="off">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="meet-date">Дата встречи</label>
+              <input type="date" id="meet-date" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="meet-start">Начало</label>
+              <select id="meet-start" required></select>
+            </div>
+
+            <div class="form-group">
+              <label for="meet-end">Окончание</label>
+              <select id="meet-end" required></select>
+            </div>
+          </div>
+
+          <!-- Participants Multi-select -->
+          <div class="form-group">
+            <label>Участники</label>
+            <p class="field-sub">Укажите коллег. Желтый значок предупредит, если у кого-то из них уже есть встреча в это время.</p>
+            <div class="participants-selector-box">
+              <div class="participants-search">
+                <i data-lucide="search"></i>
+                <input type="text" id="participant-search-input" placeholder="Быстрый поиск сотрудников...">
+              </div>
+              <div class="participants-list-scroll" id="modal-participants-list">
+                <!-- Checkboxes loaded dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="meet-description">Описание / Повестка</label>
+            <textarea id="meet-description" rows="3" placeholder="Что планируется обсудить, ссылки на зум или документы..."></textarea>
+          </div>
+
+          <!-- Dynamic Error Notification Area -->
+          <div class="error-banner" id="booking-error-banner" style="display: none;">
+            <i data-lucide="alert-circle"></i>
+            <span id="booking-error-text">Обнаружен конфликт времени</span>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" id="btn-cancel-booking">Отмена</button>
+            <button type="submit" class="btn btn-primary" id="btn-submit-booking">Забронировать встречу</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Meeting Details Hover Card -->
+  <div class="meeting-tooltip" id="meeting-tooltip">
+    <h3 class="tooltip-title" id="meeting-details-title" style="margin: 0; font-size: 1.1rem;">Встреча</h3>
+    <div class="tooltip-time" style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--primary); font-weight: 700;">
+      <i data-lucide="clock"></i>
+      <span class="tooltip-time-text">10:00 - 11:30</span>
+    </div>
+    <div class="tooltip-meta">
+      <div class="tooltip-organizer" id="meeting-details-organizer" style="font-size: 0.8rem; color: var(--text-secondary);">Организатор: <span>Иван Иванов</span></div>
+    </div>
+    <div class="tooltip-participants" style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border-glass); padding-top: 10px;">
+      <strong style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em;">Участники встречи:</strong>
+      <ul class="tooltip-participants-list" id="tooltip-participants-list"></ul>
+    </div>
+    <p class="tooltip-desc" style="margin: 0;"></p>
+    <div class="tooltip-footer" style="display: flex; justify-content: flex-end; margin-top: 4px; border-top: 1px solid var(--border-glass); padding-top: 10px;">
+      <button class="btn btn-danger-neon" id="btn-delete-meeting-tooltip" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+        <i data-lucide="trash-2"></i>
+        <span>Отменить встречу</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Dialog -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-content" style="width: 380px; text-align: center; padding: 24px;">
+      <div class="confirm-icon" style="color: #ef4444; font-size: 2.5rem; margin-bottom: 14px;">
+        <i data-lucide="alert-triangle" style="width: 48px; height: 48px;"></i>
+      </div>
+      <h3 style="margin-bottom: 10px; font-weight: 800; font-family: 'Outfit';">Отменить встречу?</h3>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5;">
+        Вы уверены, что хотите отменить эту встречу? Это действие нельзя будет отменить.
+      </p>
+      <div style="display: flex; gap: 12px;">
+        <button class="btn" id="btn-confirm-cancel" style="background: var(--bg-tertiary); color: var(--text-primary); flex: 1;">Назад</button>
+        <button class="btn btn-danger-neon" id="btn-confirm-delete" style="flex: 1;">Да, отменить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-content" style="width: 480px; max-height: 85vh; overflow-y: auto;">
+      <button class="btn-close-modal" id="btn-close-settings"><i data-lucide="x"></i></button>
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit'; font-weight: 800;">Настройки оформления</h3>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 20px; margin-top: 16px;">
+        
+        <!-- Style Themes -->
+        <div>
+          <h4 style="margin-bottom: 8px; font-size: 0.95rem; color: var(--text-primary);">Стиль дизайна (10 вариантов)</h4>
+          <div class="settings-grid" id="settings-styles-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+
+        <!-- Color Accent / Gradients -->
+        <div>
+          <h4 style="margin-bottom: 8px; font-size: 0.95rem; color: var(--text-primary);">Цветовая тема / Градиент</h4>
+          <div class="settings-colors-grid" id="settings-colors-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+
+        <!-- Animations -->
+        <div>
+          <h4 style="margin-bottom: 8px; font-size: 0.95rem; color: var(--text-primary);">Анимация переходов (10 вариантов)</h4>
+          <div class="settings-grid" id="settings-anims-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
